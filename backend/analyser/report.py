@@ -143,7 +143,6 @@ class ReportGenerator:
 
 ## {severity_emoji} Verdict: {severity.upper()} (Score: {score}/100)
 
-**Analyste** : Randra Timothy RAZAFINDRABE (CapePouvoir / D3adinsid3)  
 **Date** : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  
 **Type** : Analyse automatisée d'email (.eml)
 
@@ -342,7 +341,6 @@ class ReportGenerator:
 ---
 
 *Ce rapport a été généré automatiquement par **Email Forensic Analyzer**.*
-*Développé par Randra Timothy RAZAFINDRABE (CapePouvoir / D3adinsid3).*
 """
     
     def _generate_summary_report(
