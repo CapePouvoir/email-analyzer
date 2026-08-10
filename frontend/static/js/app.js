@@ -160,9 +160,12 @@ function showLoading() {
 function displayResults(data) {
     // Check if we have a full report
     if (data.report && data.report.markdown) {
+        // Render markdown to HTML using marked.js
+        const renderedHtml = marked.parse(data.report.markdown);
+        
         resultsContent.innerHTML = `
-            <div class="markdown-report">
-                ${data.report.markdown}
+            <div class="markdown-report markdown-body">
+                ${renderedHtml}
                 <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
                     <button class="btn btn-primary" onclick="downloadReport('${data.report.hash}', '${data.report.filename}')">
                         📥 Télécharger le rapport

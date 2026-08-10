@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Email Forensic Analyzer</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.min.css">
 </head>
 <body>
     <div class="container">
@@ -112,6 +115,14 @@
         // Check status on page load
         checkOllamaStatus();
         listUploadedFiles();
+    </script>
+    <!-- Initialize marked -->
+    <script>
+        marked.setOptions({
+            sanitize: true,
+            breaks: true,
+            gfm: true
+        });
     </script>
 </body>
 </html>

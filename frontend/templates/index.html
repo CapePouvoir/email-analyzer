@@ -6,6 +6,9 @@
     <title>Email Forensic Analyzer</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="icon" type="image/svg+xml" href="/static/images/favicon.svg">
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.min.css">
 </head>
 <body>
     <div class="container">
@@ -68,5 +71,14 @@
     <div class="toast" id="toast"></div>
 
     <script src="/static/js/app.js"></script>
+    <!-- Initialize marked with custom renderer if needed -->
+    <script>
+        // Configure marked to sanitize HTML by default
+        marked.setOptions({
+            sanitize: true,
+            breaks: true,
+            gfm: true
+        });
+    </script>
 </body>
 </html>

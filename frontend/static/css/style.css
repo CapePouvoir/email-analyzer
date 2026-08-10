@@ -348,6 +348,105 @@ body {
     line-height: 1.7;
 }
 
+/* GitHub Markdown CSS override for better integration */
+.markdown-body {
+    background: transparent;
+    padding: 0;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+    color: var(--text-primary);
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.markdown-body h1 {
+    font-size: 1.75rem;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.markdown-body h2 {
+    font-size: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.markdown-body p {
+    color: var(--text-secondary);
+    margin: 1rem 0;
+}
+
+.markdown-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+.markdown-body th,
+.markdown-body td {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    text-align: left;
+}
+
+.markdown-body th {
+    background: var(--background-color);
+    font-weight: 600;
+}
+
+.markdown-body tr:nth-child(even) {
+    background: var(--background-color);
+}
+
+.markdown-body code {
+    background: var(--background-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    font-size: 0.875rem;
+}
+
+.markdown-body pre {
+    background: var(--background-color);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+}
+
+.markdown-body a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.markdown-body a:hover {
+    text-decoration: underline;
+}
+
+.markdown-body blockquote {
+    border-left: 4px solid var(--primary-color);
+    padding-left: 1rem;
+    margin: 1rem 0;
+    color: var(--text-secondary);
+    font-style: italic;
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.markdown-body ul,
+.markdown-body ol {
+    margin: 1rem 0;
+    padding-left: 2rem;
+}
+
+.markdown-body li {
+    margin: 0.5rem 0;
+}
+
 .markdown-report h1,
 .markdown-report h2,
 .markdown-report h3 {
