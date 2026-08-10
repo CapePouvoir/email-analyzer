@@ -1,0 +1,41 @@
+[Unit]
+Description=Email Forensic Analyzer - SOC Email Analysis Platform
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/email-analyzer
+
+# Environment variables (can be overridden in /etc/systemd/system/email-analyzer.service.d/override.conf)
+Environment=OLLAMA_URL=http://localhost:11434
+Environment=OLLAMA_MODEL=mistral
+Environment=UPLOAD_DIR=/opt/email-analyzer/data/uploads
+Environment=CLEANUP_DAYS=7
+Environment=HOST=0.0.0.0
+Environment=PORT=8000
+Environment=ADMIN_PASSWORD=changeme
+
+# Python virtual environment
+Environment=PYTHONUNBUFFERED=1
+
+# Command to run the application
+ExecStart=/opt/email-analyzer/.venv/bin/python -m uvicorn backend.app:app --host 0.0.0.0 --port 8000
+
+# Auto-restart on crash
+Restart=on-failure
+RestartSec=5
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+PrivateTmp=true
+ProtectSystem=full
+NoNewPrivileges=true
+PrivateDevices=true
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target

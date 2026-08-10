@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Forensic Analyzer</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" type="image/svg+xml" href="/static/images/favicon.svg">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>🔍 Email Forensic Analyzer</h1>
+                <p class="subtitle">Analyse automatisée d'emails suspects (.eml)</p>
+            </div>
+            <nav class="nav">
+                <a href="/" class="active">Analyser</a>
+                <a href="/admin">Admin</a>
+                <a href="/api/docs" target="_blank">API Docs</a>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Drop Zone -->
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-content">
+                    <div class="icon">📧</div>
+                    <h2>Déposez un fichier .eml ici</h2>
+                    <p class="hint">ou cliquez pour sélectionner un fichier</p>
+                    <p class="supported-formats">Format supporté : <strong>.eml</strong></p>
+                    <input type="file" id="fileInput" accept=".eml" style="display: none;">
+                </div>
+            </div>
+
+            <!-- Results Section (hidden by default) -->
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-header">
+                    <h2>✅ Analyse en cours...</h2>
+                    <button class="btn btn-secondary" onclick="resetUpload()">Nouvelle analyse</button>
+                </div>
+                <div class="results-content" id="resultsContent">
+                    <!-- Results will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Error Section (hidden by default) -->
+            <div class="error-section" id="errorSection" style="display: none;">
+                <div class="error-icon">❌</div>
+                <h2>Erreur</h2>
+                <p id="errorMessage"></p>
+                <button class="btn btn-primary" onclick="resetUpload()">Réessayer</button>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Email Forensic Analyzer v0.1.0 | POC pour SOC</p>
+            <p class="footer-hint">⚠️ Les fichiers sont supprimés après 7 jours</p>
+        </footer>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast" id="toast"></div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
