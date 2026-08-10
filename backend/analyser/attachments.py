@@ -422,14 +422,14 @@ def _generate_md5(content) -> str:
     return hashlib.md5(content).hexdigest()
 
 
-def _save_attachment(upload_dir: Path, filename: str, content: bytes) -> Optional[Path]:
+def _save_attachment(upload_dir: Path, filename: str, content) -> Optional[Path]:
     """
     Save attachment to upload directory.
     
     Args:
         upload_dir: Directory to save attachment
         filename: Attachment filename
-        content: Attachment content
+        content: Attachment content (bytes or str)
         
     Returns:
         Path to saved file, or None if failed
@@ -452,11 +452,15 @@ def _save_attachment(upload_dir: Path, filename: str, content: bytes) -> Optiona
             filepath = upload_dir / new_filename
             counter += 1
         
+        # Ensure content is bytes
+        if isinstance(content, str):
+            content = content.encode('utf-8', errors='replace')
+        
         filepath.write_bytes(content)
         return filepath
     
     except Exception as e:
-        print(f"Error saving attachment {filename}: {e}")
+        logger.error(f"Error saving attachment {filename}: {e}")
         return None
 
 

@@ -221,7 +221,7 @@ class ReportGenerator:
         
         warnings = "\n".join([f"- {w}" for a in attachment_analysis.attachments for w in a.warnings])
         
-        return f"""## 📎 Analyse des Pièces Jointes ({attachment_analysis.total_links})
+        return f"""## 📎 Analyse des Pièces Jointes ({len(attachment_analysis.attachments)})
 
 ### Liste des pièces jointes
 
