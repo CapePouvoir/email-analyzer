@@ -1,6 +1,8 @@
 """
 Configuration management for Email Forensic Analyzer
 Loads environment variables from .env file
+
+Author: Randra Timothy RAZAFINDRABE (CapePouvoir / D3adinsid3)
 """
 
 import os

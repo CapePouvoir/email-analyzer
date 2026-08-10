@@ -158,24 +158,75 @@ function showLoading() {
  * @param {Object} data - Analysis results from server
  */
 function displayResults(data) {
-    // For now, display raw JSON. Will be replaced with Markdown rendering
-    resultsContent.innerHTML = `
-        <div class="markdown-report">
-            <h2>✅ Analyse terminée</h2>
-            <p><strong>Fichier :</strong> ${data.filename}</p>
-            <p><strong>Taille :</strong> ${formatFileSize(data.size)}</p>
-            <p><strong>Statut :</strong> ${data.status}</p>
-            
-            <h3>Prochaines étapes</h3>
-            <ul>
-                ${data.next_steps.map(step => `<li>${step}</li>`).join('')}
-            </ul>
-            
-            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 2rem;">
-                ⚠️ L'analyse complète sera implémentée prochainement.
-            </p>
-        </div>
-    `;
+    // Check if we have a full report
+    if (data.report && data.report.markdown) {
+        resultsContent.innerHTML = `
+            <div class="markdown-report">
+                ${data.report.markdown}
+                <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                    <button class="btn btn-primary" onclick="downloadReport('${data.report.hash}', '${data.report.filename}')">
+                        📥 Télécharger le rapport
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Update header with severity
+        const severityEmoji = getSeverityEmoji(data.report.severity);
+        const severityText = data.report.severity.toUpperCase();
+        document.querySelector('.results-header h2').innerHTML = 
+            `${severityEmoji} Analyse terminée - ${severityText} (Score: ${data.report.score}/100)`;
+    } else {
+        // Fallback for old responses
+        resultsContent.innerHTML = `
+            <div class="markdown-report">
+                <h2>✅ Analyse terminée</h2>
+                <p><strong>Fichier :</strong> ${data.filename}</p>
+                <p><strong>Taille :</strong> ${formatFileSize(data.size)}</p>
+                <p><strong>Statut :</strong> ${data.status}</p>
+                
+                <h3>Prochaines étapes</h3>
+                <ul>
+                    ${data.next_steps ? data.next_steps.map(step => `<li>${step}</li>`).join('') : ''}
+                </ul>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Download report as Markdown file
+ */
+function downloadReport(hash, filename) {
+    // Create a blob with the markdown content
+    const markdown = document.querySelector('.markdown-report').textContent;
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    
+    // Create download link
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename || `report_${hash}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast('Rapport téléchargé avec succès!', 'success');
+}
+
+/**
+ * Get severity emoji
+ */
+function getSeverityEmoji(severity) {
+    const emojis = {
+        'critical': '🔴',
+        'high': '🟠',
+        'medium': '🟡',
+        'low': '🟢',
+        'benign': '✅'
+    };
+    return emojis[severity] || '⚠️';
 }
 
 /**

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Email Forensic Analyzer</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>🔍 Email Forensic Analyzer - Admin</h1>
+                <p class="subtitle">Panneau d'administration</p>
+            </div>
+            <nav class="nav">
+                <a href="/">Analyser</a>
+                <a href="/admin" class="active">Admin</a>
+                <a href="/api/docs" target="_blank">API Docs</a>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="admin-section">
+                <h2>📊 Tableau de bord</h2>
+                
+                <div class="admin-cards">
+                    <div class="admin-card">
+                        <h3>Statut Ollama</h3>
+                        <p id="ollamaStatus">Chargement...</p>
+                        <button class="btn btn-primary" onclick="checkOllamaStatus()">Vérifier</button>
+                    </div>
+                    
+                    <div class="admin-card">
+                        <h3>Modèle actuel</h3>
+                        <p id="currentModel">-</p>
+                        <button class="btn btn-secondary" onclick="listModels()">Lister les modèles</button>
+                    </div>
+                    
+                    <div class="admin-card">
+                        <h3>Analyses récentes</h3>
+                        <p>Fonctionnalité à venir</p>
+                    </div>
+                </div>
+                
+                <div class="admin-section">
+                    <h2>⚙️ Configuration</h2>
+                    <p>Les paramètres sont configurés via le fichier <code>.env</code>.</p>
+                    <p>Redémarrez le service pour appliquer les changements.</p>
+                </div>
+                
+                <div class="admin-section">
+                    <h2>📁 Fichiers uploadés</h2>
+                    <p id="uploadedFiles">Chargement...</p>
+                    <button class="btn btn-secondary" onclick="listUploadedFiles()">Rafraîchir</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Email Forensic Analyzer v0.1.0 | Admin Panel</p>
+            <p class="footer-hint">Développé par Randra Timothy RAZAFINDRABE (CapePouvoir / D3adinsid3)</p>
+        </footer>
+    </div>
+
+    <script>
+        async function checkOllamaStatus() {
+            try {
+                const response = await fetch('/api/health/ollama');
+                const data = await response.json();
+                
+                const statusEl = document.getElementById('ollamaStatus');
+                if (data.ollama_running) {
+                    statusEl.innerHTML = '✅ Ollama est en cours d\'exécution';
+                } else {
+                    statusEl.innerHTML = '❌ Ollama n\'est pas démarré';
+                }
+                
+                document.getElementById('currentModel').textContent = data.current_model;
+            } catch (error) {
+                document.getElementById('ollamaStatus').innerHTML = '❌ Erreur: ' + error.message;
+            }
+        }
+        
+        async function listModels() {
+            try {
+                const response = await fetch('/api/health/ollama');
+                const data = await response.json();
+                
+                if (data.available_models && data.available_models.length > 0) {
+                    alert('Modèles disponibles:\n\n' + data.available_models.join('\n'));
+                } else {
+                    alert('Aucun modèle disponible ou Ollama non démarré');
+                }
+            } catch (error) {
+                alert('Erreur: ' + error.message);
+            }
+        }
+        
+        async function listUploadedFiles() {
+            try {
+                // TODO: Implement endpoint to list uploaded files
+                document.getElementById('uploadedFiles').textContent = 'Fonctionnalité à venir';
+            } catch (error) {
+                document.getElementById('uploadedFiles').textContent = 'Erreur: ' + error.message;
+            }
+        }
+        
+        // Check status on page load
+        checkOllamaStatus();
+        listUploadedFiles();
+    </script>
+</body>
+</html>

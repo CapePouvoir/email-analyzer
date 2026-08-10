@@ -6,7 +6,9 @@ email-validator==2.1.0
 python-dotenv==1.0.1
 Jinja2==3.1.4
 pydantic==2.7.1
+pydantic-settings==2.2.1
 requests==2.32.3
 mail-parser==3.15.0
+eml-parser==0.5.3
 python-magic==0.4.27
 hashlib2==2.0.2
