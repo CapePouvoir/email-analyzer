@@ -10,3 +10,4 @@ pydantic-settings==2.2.1
 requests==2.32.3
 mail-parser==3.15.0
 python-magic==0.4.27
+aiofiles>=23.0.0

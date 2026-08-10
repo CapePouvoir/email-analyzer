@@ -9,10 +9,13 @@ import hashlib
 import base64
 import mimetypes
 import magic
+import logging
 from dataclasses import dataclass, field
 from typing import Optional, Dict, List, Tuple
 from pathlib import Path
 import re
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -123,15 +126,28 @@ def _extract_attachments_from_eml(eml_content: str) -> List[Tuple[str, bytes, st
         from mailparser import parse_from_string
         mail = parse_from_string(eml_content)
         
-        # Get all attachments
-        for attachment in mail.attachments:
-            filename = attachment.filename or f"unnamed_{len(attachments)}"
-            content = attachment.payload
-            content_type = attachment.content_type or "application/octet-stream"
-            attachments.append((filename, content, content_type))
+        # Get all attachments - check if mail.attachments exists and is iterable
+        if mail.attachments:
+            for attachment in mail.attachments:
+                # Handle both attachment objects and dicts (for compatibility)
+                if hasattr(attachment, 'filename'):
+                    filename = attachment.filename or f"unnamed_{len(attachments)}"
+                    content = attachment.payload
+                    content_type = attachment.content_type or "application/octet-stream"
+                elif isinstance(attachment, dict):
+                    filename = attachment.get('filename') or f"unnamed_{len(attachments)}"
+                    content = attachment.get('payload')
+                    content_type = attachment.get('content_type') or "application/octet-stream"
+                else:
+                    continue
+                    
+                # Only add if we have content
+                if content:
+                    attachments.append((filename, content, content_type))
     
-    except ImportError:
-        # Fallback to manual parsing if mail-parser is not available
+    except (ImportError, Exception) as e:
+        # Fallback to manual parsing if mail-parser is not available or fails
+        logger.warning(f"mail-parser failed: {e}, using manual parsing")
         attachments = _manual_extract_attachments(eml_content)
     
     return attachments

@@ -182,27 +182,35 @@ async def upload_email(file: UploadFile = File(...)):
     
     try:
         # Step 1: Analyze headers
+        logger.info(f"Analyzing headers for {file.filename}")
         header_analysis = analyse_headers(eml_content_str)
+        logger.info(f"Headers analysis complete: from={header_analysis.from_address}, subject={header_analysis.subject}")
         
         # Step 2: Analyze attachments
         upload_dir = settings.UPLOAD_DIR
+        logger.info(f"Analyzing attachments for {file.filename}")
         attachment_analysis = analyse_attachments(eml_content_str, upload_dir)
+        logger.info(f"Attachments analysis complete: {len(attachment_analysis.attachments)} attachments found")
         
         # Step 3: Analyze links
+        logger.info(f"Analyzing links for {file.filename}")
         link_analysis = analyse_links(eml_content_str, follow_redirects=False)
+        logger.info(f"Links analysis complete: {link_analysis.total_links} links found")
         
         # Step 4: Analyze with Ollama (if available)
         ollama_analysis = None
         if ollama_client.check_health():
             try:
+                logger.info(f"Running Ollama analysis for {file.filename}")
                 ollama_analysis = ollama_client.analyze_email(
                     headers=header_to_dict(header_analysis),
                     attachments=[attachment_to_dict(a) for a in attachment_analysis.attachments],
                     links=[link_to_dict(l) for l in link_analysis.links],
                     email_content=eml_content_str
                 )
+                logger.info(f"Ollama analysis complete for {file.filename}")
             except Exception as e:
-                logger.warning(f"Ollama analysis failed: {e}")
+                logger.warning(f"Ollama analysis failed for {file.filename}: {e}")
                 ollama_analysis = {
                     'verdict': 'Ollama non disponible',
                     'context_analysis': str(e),
@@ -210,6 +218,7 @@ async def upload_email(file: UploadFile = File(...)):
                     'confidence': 0.0
                 }
         else:
+            logger.warning(f"Ollama not available for {file.filename}")
             ollama_analysis = {
                 'verdict': 'Ollama non disponible',
                 'context_analysis': 'Le service Ollama n\'est pas démarré. Démarrez-le avec: ollama serve',
@@ -218,6 +227,7 @@ async def upload_email(file: UploadFile = File(...)):
             }
         
         # Step 5: Generate report
+        logger.info(f"Generating report for {file.filename}")
         report = report_generator.generate(
             eml_content=eml_content_str,
             header_analysis=header_analysis,
@@ -253,7 +263,7 @@ async def upload_email(file: UploadFile = File(...)):
         return response_data
         
     except Exception as e:
-        logger.error(f"Analysis failed for {file.filename}: {e}")
+        logger.error(f"Analysis failed for {file.filename}: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"Analysis failed: {str(e)}"
