@@ -244,32 +244,38 @@ def _parse_attachment_part(part: str) -> Tuple[Optional[str], Optional[bytes], s
     return filename, content, content_type
 
 
-def _analyse_attachment(filename: str, content: bytes, content_type: str) -> AttachmentInfo:
+def _analyse_attachment(filename: str, content, content_type: str) -> AttachmentInfo:
     """
     Analyze a single attachment.
     
     Args:
         filename: Attachment filename
-        content: Attachment content as bytes
+        content: Attachment content as bytes or str
         content_type: MIME type of the attachment
         
     Returns:
         AttachmentInfo object
     """
+    # Ensure content is bytes for size calculation
+    if isinstance(content, str):
+        content_bytes = content.encode('utf-8', errors='replace')
+    else:
+        content_bytes = content
+    
     info = AttachmentInfo(
         filename=filename,
         content_type=content_type,
-        size=len(content) if content else 0,
+        size=len(content_bytes) if content_bytes else 0,
         file_extension=Path(filename).suffix.lower() if filename else ''
     )
     
     # Detect actual file type using magic
-    if content:
+    if content_bytes:
         try:
             # Use python-magic for better detection
-            magic_result = magic.from_buffer(content, mime=True)
+            magic_result = magic.from_buffer(content_bytes, mime=True)
             info.magic_type = magic_result
-            info.magic_description = magic.from_buffer(content)
+            info.magic_description = magic.from_buffer(content_bytes)
         except:
             pass
     
@@ -280,12 +286,12 @@ def _analyse_attachment(filename: str, content: bytes, content_type: str) -> Att
     info.is_suspicious = _is_suspicious(filename, content_type, info.file_extension)
     
     # Generate hashes
-    if content:
-        info.hash_sha256 = _generate_sha256(content)
-        info.hash_md5 = _generate_md5(content)
+    if content_bytes:
+        info.hash_sha256 = _generate_sha256(content_bytes)
+        info.hash_md5 = _generate_md5(content_bytes)
         
         # Generate base64 preview (first 100 bytes)
-        preview = content[:MAX_PREVIEW_SIZE]
+        preview = content_bytes[:MAX_PREVIEW_SIZE]
         try:
             info.base64_preview = base64.b64encode(preview).decode('utf-8')
         except:
@@ -402,13 +408,17 @@ def _generate_warnings(filename: str, content_type: str, info: AttachmentInfo) -
     return warnings
 
 
-def _generate_sha256(content: bytes) -> str:
+def _generate_sha256(content) -> str:
     """Generate SHA256 hash of content."""
+    if isinstance(content, str):
+        content = content.encode('utf-8', errors='replace')
     return hashlib.sha256(content).hexdigest()
 
 
-def _generate_md5(content: bytes) -> str:
+def _generate_md5(content) -> str:
     """Generate MD5 hash of content."""
+    if isinstance(content, str):
+        content = content.encode('utf-8', errors='replace')
     return hashlib.md5(content).hexdigest()
 
 
