@@ -256,7 +256,6 @@ Ce projet est développé dans le cadre d'une alternance en cybersécurité.
 - **Auteur** : Randra Timothy RAZAFINDRABE
 - **Pseudo GitHub** : [CapePouvoir](https://github.com/CapePouvoir)
 - **Pseudo Forums** : D3adinsid3
-- **Licence** : MIT (à confirmer selon politique entreprise)
 
 ---
 
