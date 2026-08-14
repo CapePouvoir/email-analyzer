@@ -77,7 +77,8 @@ class OllamaClient:
         headers: Dict[str, Any],
         attachments: List[Dict[str, Any]],
         links: List[Dict[str, Any]],
-        email_content: Optional[str] = None
+        email_content: Optional[str] = None,
+        custom_context: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Analyze email content using Ollama LLM.
@@ -87,12 +88,18 @@ class OllamaClient:
             attachments: Attachment analysis results
             links: Link analysis results
             email_content: Optional raw email content
+            custom_context: Optional user-provided context for better analysis
             
         Returns:
             Analysis results from LLM
         """
         # Build context for LLM
         context = self._build_context(headers, attachments, links, email_content)
+        
+        # Add custom context if provided
+        if custom_context:
+            context += f"\n\n=== CONTEXTE UTILISATEUR ==="
+            context += f"\n{custom_context}"
         
         # System prompt for email analysis
         system_prompt = """Tu es un expert en cybersécurité spécialisé dans l'analyse forensique d'emails.

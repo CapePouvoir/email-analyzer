@@ -9,6 +9,9 @@
 
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
+const contextSection = document.getElementById('contextSection');
+const contextInput = document.getElementById('contextInput');
+const charCount = document.getElementById('charCount');
 const resultsSection = document.getElementById('resultsSection');
 const resultsContent = document.getElementById('resultsContent');
 const errorSection = document.getElementById('errorSection');
@@ -52,6 +55,28 @@ dropZone.addEventListener('click', () => {
     fileInput.click();
 });
 
+// Show context input when file is selected
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) {
+        contextSection.style.display = 'block';
+    }
+});
+
+// Character counter for context input
+contextInput.addEventListener('input', () => {
+    const currentLength = contextInput.value.length;
+    charCount.textContent = currentLength;
+    
+    // Change color if approaching limit
+    if (currentLength > 1800) {
+        charCount.style.color = 'var(--danger-color)';
+    } else if (currentLength > 1500) {
+        charCount.style.color = 'var(--warning-color)';
+    } else {
+        charCount.style.color = 'var(--primary-color)';
+    }
+});
+
 // Handle file selection from dialog
 fileInput.addEventListener('change', () => {
     if (fileInput.files.length) {
@@ -78,11 +103,26 @@ function handleFiles(files) {
         return;
     }
     
-    // Show loading state
-    showLoading();
+    // Show context section for additional input
+    contextSection.style.display = 'block';
     
-    // Upload file
-    uploadFile(file);
+    // Show loading state when user submits
+    const submitButton = document.createElement('button');
+    submitButton.textContent = 'Analyser avec contexte';
+    submitButton.className = 'btn btn-primary';
+    submitButton.style.marginTop = '1rem';
+    submitButton.onclick = () => {
+        showLoading();
+        uploadFile(file, contextInput.value);
+    };
+    
+    // Remove existing submit button if any
+    const existingButton = contextSection.querySelector('button');
+    if (existingButton) {
+        existingButton.remove();
+    }
+    
+    contextSection.appendChild(submitButton);
 }
 
 /**
@@ -110,10 +150,14 @@ function validateFile(file) {
 /**
  * Upload file to server
  * @param {File} file - File to upload
+ * @param {string} context - Optional user context
  */
-async function uploadFile(file) {
+async function uploadFile(file, context = '') {
     const formData = new FormData();
     formData.append('file', file);
+    if (context) {
+        formData.append('context', context);
+    }
     
     try {
         const response = await fetch('/api/upload', {
@@ -128,7 +172,7 @@ async function uploadFile(file) {
         
         const result = await response.json();
         displayResults(result);
-        showToast(`Fichier ${file.name} uploadé avec succès!`, 'success');
+        showToast(`Fichier ${file.name} analysé avec succès!`, 'success');
         
     } catch (error) {
         showError(error.message);

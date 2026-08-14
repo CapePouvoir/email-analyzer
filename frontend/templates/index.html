@@ -28,14 +28,32 @@
 
         <!-- Main Content -->
         <main class="main">
-            <!-- Drop Zone -->
-            <div class="drop-zone" id="dropZone">
-                <div class="drop-zone-content">
-                    <div class="icon">📧</div>
-                    <h2>Déposez un fichier .eml ici</h2>
-                    <p class="hint">ou cliquez pour sélectionner un fichier</p>
-                    <p class="supported-formats">Format supporté : <strong>.eml</strong></p>
-                    <input type="file" id="fileInput" accept=".eml" style="display: none;">
+            <!-- Analysis Form -->
+            <div class="analysis-form">
+                <!-- Drop Zone -->
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-zone-content">
+                        <div class="icon">📧</div>
+                        <h2>Déposez un fichier .eml ici</h2>
+                        <p class="hint">ou cliquez pour sélectionner un fichier</p>
+                        <p class="supported-formats">Format supporté : <strong>.eml</strong></p>
+                        <input type="file" id="fileInput" accept=".eml" style="display: none;">
+                    </div>
+                </div>
+                
+                <!-- Context Input -->
+                <div class="context-section" id="contextSection" style="display: none; margin-top: 1.5rem;">
+                    <h3>📝 Contexte supplémentaire (optionnel)</h3>
+                    <p class="hint">Ajoutez des informations pour améliorer l'analyse LLM : contexte métier, relations avec l'expéditeur, événements récents, etc.</p>
+                    <textarea 
+                        id="contextInput" 
+                        placeholder="Exemple: Cet email provient de notre fournisseur habituel. Nous attendions effectivement une facture de leur part cette semaine. Le domaine @golincalspan.com est connu dans notre écosystème."
+                        rows="4"
+                        maxlength="2000"
+                    ></textarea>
+                    <div class="char-counter">
+                        <span id="charCount">0</span>/2000 caractères
+                    </div>
                 </div>
             </div>
 

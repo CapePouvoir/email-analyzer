@@ -143,17 +143,21 @@ async def health_check():
 
 
 @app.post("/api/upload", tags=["analysis"])
-async def upload_email(file: UploadFile = File(...)):
+async def upload_email(
+    file: UploadFile = File(...),
+    context: Optional[str] = Form(None)
+):
     """
     Upload and analyze an email file (.eml).
     
-    This endpoint accepts a .eml file and returns a comprehensive analysis report.
+    This endpoint accepts a .eml file and optional user context, 
+    then returns a comprehensive analysis report.
     
     The analysis includes:
     - Header analysis (SPF, DKIM, DMARC, IP reputation)
     - Attachment analysis (hashes, file types, suspicious files)
     - Link analysis (URLs, domains, shortened links)
-    - LLM-based contextual analysis (via Ollama)
+    - LLM-based contextual analysis (via Ollama) with optional user context
     - Markdown report generation
     """
     # Check file extension
@@ -177,6 +181,10 @@ async def upload_email(file: UploadFile = File(...)):
     # Read file content
     eml_content = await file.read()
     eml_content_str = eml_content.decode('utf-8', errors='replace')
+    
+    # Log custom context if provided
+    if context:
+        logger.info(f"User provided context: {context[:100]}...")
     
     logger.info(f"Analyzing file: {file.filename} ({len(eml_content)} bytes)")
     
@@ -206,7 +214,8 @@ async def upload_email(file: UploadFile = File(...)):
                     headers=header_to_dict(header_analysis),
                     attachments=[attachment_to_dict(a) for a in attachment_analysis.attachments],
                     links=[link_to_dict(l) for l in link_analysis.links],
-                    email_content=eml_content_str
+                    email_content=eml_content_str,
+                    custom_context=context
                 )
                 logger.info(f"Ollama analysis complete for {file.filename}")
             except Exception as e:
