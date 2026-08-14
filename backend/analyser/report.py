@@ -275,18 +275,22 @@ class ReportGenerator:
         context = ollama_analysis.get('context_analysis', '')
         recommendations = ollama_analysis.get('recommendations', [])
         verdict = ollama_analysis.get('verdict', '')
+        confidence = ollama_analysis.get('confidence', 0.0)
         
         recommendations_list = "\n".join([f"- {r}" for r in recommendations])
         
+        # Format confidence percentage
+        confidence_percent = f"{confidence * 100:.1f}%"
+        
         return f"""## 🧠 Analyse Contextuelle (LLM - Ollama)
 
-### Verdict
-> {verdict}
+### Verdict : {verdict}
+**Confiance** : {confidence_percent}
 
 ### Analyse du contexte
 > {context}
 
-### Recommandations
+### Recommandations supplémentaires
 {recommendations_list if recommendations_list else "Aucune recommandation supplémentaire."}
 """
     

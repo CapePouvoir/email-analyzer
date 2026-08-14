@@ -16,11 +16,11 @@ import requests
 class LinkInfo:
     """Information about a single link."""
     original_url: str
-    normalized_url: str
-    domain: str
-    path: str
-    query: str
-    fragment: str
+    normalized_url: str = ""
+    domain: str = ""
+    path: str = ""
+    query: str = ""
+    fragment: str = ""
     is_https: bool = False
     is_http: bool = False
     is_relative: bool = False
