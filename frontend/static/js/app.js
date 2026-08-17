@@ -346,9 +346,16 @@ async function checkAdminPassword(password) {
 // Keyboard Shortcuts
 // ============================================================================
 
-// Allow Ctrl+V to paste file
+// Allow Ctrl+V to paste files (only when not targeting text inputs)
 document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key === 'v') {
+        // Don't interfere with text inputs (textarea, input)
+        const target = e.target;
+        if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT' || 
+            target.tagName === 'INPUT' || target.isContentEditable) {
+            return; // Let browser handle paste for text inputs
+        }
+        
         e.preventDefault();
         // Get clipboard files
         if (e.clipboardData && e.clipboardData.files.length) {
