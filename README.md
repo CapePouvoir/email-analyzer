@@ -49,16 +49,63 @@ Client (Navigateur) → [Frontend: HTML/JS] → [Backend: FastAPI]
 - **Ollama** : [Installation officielle](https://ollama.com/)
 - **Ressources** : 12Go RAM (recommandé)
 
+> **Nouveau** : Utilisez le script d'installation interactif pour une configuration simplifiée !
+> ```bash
+> python install.py
+> ```
+> Ce script vous guide pour : vérifier les prérequis, détecter la RAM, lister les modèles Ollama disponibles, **choisir interactivement votre modèle LLM**, et générer le fichier `.env`.
+
 ### 2. Installation
 
-#### Clone le dépôt
+#### Méthode recommandée : Installation interactive
+
+Utilisez le script d'installation pour une configuration guidée :
+
 ```bash
 git clone https://github.com/CapePouvoir/email-analyzer.git
 cd email-analyzer
+python install.py
 ```
 
-#### Installe les dépendances
+Le script va :
+1. Vérifier Python 3.10+
+2. Vérifier que Ollama est installé et démarré
+3. **Détecter votre RAM disponible**
+4. **Lister les modèles Ollama disponibles**
+5. **Vous proposer un choix interactif** :
+   - Option A : Sélection automatique basée sur votre RAM
+   - Option M : Choix manuel parmi les modèles disponibles
+6. Installer les dépendances Python
+7. Générer le fichier `.env` avec votre configuration
+
+**Exemple d'affichage :**
+```
+[Étape 4] Sélection du modèle LLM
+
+Modèles disponibles dans Ollama:
+  1. mistral:latest          (nécessite 8 GB RAM) ✓
+  2. deepseek-coder:latest   (nécessite 16 GB RAM) ✗
+  3. llama3:latest           (nécessite 8 GB RAM) ✓
+
+Recommandation: mistral:latest (basé sur 15.28 GB RAM)
+
+Options:
+  A. Utiliser la recommandation automatique
+  M. Choisir manuellement
+  Q. Quitter
+
+Votre choix (A/M/Q): 
+```
+
+#### Méthode manuelle
+
+Si vous préférez configurer manuellement :
+
 ```bash
+# Clone le dépôt
+git clone https://github.com/CapePouvoir/email-analyzer.git
+cd email-analyzer
+
 # Crée un environnement virtuel (optionnel mais recommandé)
 python -m venv .venv
 source .venv/bin/activate  # Linux/Mac
@@ -145,6 +192,27 @@ email-analyzer/
 ---
 
 ## 🔧 Configuration
+
+### Sélection du modèle LLM
+
+Le projet supporte une **sélection automatique du modèle** basée sur la RAM disponible :
+
+| Modèle | RAM requise | Taille | Recommandation |
+|--------|-------------|-------|----------------|
+| `phi3` | 4 GB | ~2 GB | Machines légères |
+| `mistral` | 8 GB | ~4 GB | Équilibre parfait |
+| `llama3` | 8 GB | ~4 GB | Alternative à Mistral |
+| `deepseek` | 16 GB | ~7 GB | Analyse approfondie |
+
+**Sélection automatique** (activée par défaut) :
+- Le modèle est choisi en fonction de votre **RAM totale**
+- Priorité : `deepseek` → `mistral` → `llama3` → `phi3`
+- Si votre modèle préféré (dans `.env`) est disponible et compatible, il est utilisé
+
+**Sélection manuelle** :
+- Modifiez `OLLAMA_MODEL` dans `.env`
+- Ou utilisez l'endpoint API : `POST /api/models/select?model_name=mistral`
+- Ou relancez `python install.py` pour reconfigurer
 
 ### Variables d'environnement (`.env`)
 

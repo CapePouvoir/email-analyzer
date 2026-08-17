@@ -12,6 +12,11 @@ from pathlib import Path
 import logging
 
 from backend.config import get_settings
+from backend.utils.system import (
+    select_model_based_on_ram, 
+    get_available_ram_gb,
+    get_model_ram_requirement
+)
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +24,158 @@ logger = logging.getLogger(__name__)
 class OllamaClient:
     """Client for interacting with Ollama API."""
     
-    def __init__(self):
+    def __init__(self, auto_select_model: bool = True):
+        """
+        Initialize Ollama client.
+        
+        Args:
+            auto_select_model: If True, automatically select the best model
+                             based on available RAM and available models.
+                             If False, use the model from settings.
+        """
         self.settings = get_settings()
         self.base_url = self.settings.OLLAMA_URL.rstrip('/')
-        self.model = self.settings.OLLAMA_MODEL
+        # Force localhost to 127.0.0.1 to avoid DNS resolution issues
+        if self.base_url == 'http://localhost:11434':
+            self.base_url = 'http://127.0.0.1:11434'
         self.timeout = self.settings.OLLAMA_TIMEOUT
+        
+        # Store preferred model from settings
+        self.preferred_model = self.settings.OLLAMA_MODEL
+        
+        # Auto-select model based on RAM if requested
+        if auto_select_model:
+            self.model = self._auto_select_model()
+        else:
+            # If not auto-selecting, try to match the preferred model with available models
+            self.model = self._match_model_name(self.preferred_model)
+        
+        logger.info(f"Ollama client initialized with model: {self.model}")
+    
+    def _match_model_name(self, model_name: str) -> str:
+        """
+        Match a model name with available models in Ollama.
+        
+        Args:
+            model_name: Preferred model name (e.g., 'mistral', 'deepseek')
+        
+        Returns:
+            Full model name as available in Ollama (e.g., 'mistral:latest')
+        """
+        from backend.utils.system import get_model_base_name
+        
+        available_models = self.list_models()
+        if not available_models:
+            return model_name
+        
+        # Try to find a model with matching base name
+        preferred_base = get_model_base_name(model_name)
+        for ollama_model in available_models:
+            if get_model_base_name(ollama_model) == preferred_base:
+                return ollama_model
+        
+        # If no match, return the original name
+        return model_name
+    
+    def _auto_select_model(self) -> str:
+        """
+        Automatically select the best model based on available RAM and models.
+        
+        Returns:
+            Selected model name (full name as returned by Ollama)
+        """
+        # Get available models from Ollama
+        available_models = self.list_models()
+        
+        if not available_models:
+            logger.warning("No models available in Ollama. Using preferred model from settings.")
+            return self._match_model_name(self.preferred_model)
+        
+        logger.info(f"Available Ollama models: {available_models}")
+        
+        # Detect total RAM for model selection
+        from backend.utils.system import get_total_ram_gb
+        total_ram_gb = get_total_ram_gb()
+        logger.info(f"Total RAM: {total_ram_gb:.2f} GB")
+        
+        # Select model based on RAM and priority
+        selected_model = select_model_based_on_ram(
+            available_models=available_models,
+            available_ram_gb=total_ram_gb,
+            preferred_model=self.preferred_model,
+            use_total_ram=True
+        )
+        
+        # Check if the selected model requires more RAM than available (use available RAM for warning)
+        available_ram_gb = get_available_ram_gb()
+        required_ram = get_model_ram_requirement(selected_model)
+        if available_ram_gb < required_ram:
+            logger.warning(
+                f"Selected model {selected_model} requires {required_ram} GB "
+                f"but only {available_ram_gb:.2f} GB currently available. "
+                f"Consider closing other applications."
+            )
+        
+        return selected_model
+    
+    def reselect_model(self) -> str:
+        """
+        Re-select the model based on current conditions.
+        
+        Returns:
+            Newly selected model name
+        """
+        old_model = self.model
+        self.model = self._auto_select_model()
+        if old_model != self.model:
+            logger.info(f"Model changed from {old_model} to {self.model}")
+        return self.model
+    
+    def set_model(self, model_name: str) -> None:
+        """
+        Manually set the model to use.
+        
+        Args:
+            model_name: Name of the model to use
+        """
+        self.model = model_name
+        logger.info(f"Model manually set to: {model_name}")
+    
+    def get_available_models_info(self) -> Dict[str, Any]:
+        """
+        Get information about available models and their RAM requirements.
+        
+        Returns:
+            Dictionary with model information
+        """
+        from backend.utils.system import get_total_ram_gb, get_available_ram_gb
+        
+        available_models = self.list_models() or []
+        
+        models_info = {}
+        for model in available_models:
+            models_info[model] = {
+                'available': True,
+                'ram_requirement_gb': get_model_ram_requirement(model),
+                'selected': model == self.model
+            }
+        
+        # Add models from requirements that are not available
+        for model, ram_req in [('phi3', 4), ('mistral', 8), ('llama3', 8), ('deepseek', 16)]:
+            if model not in models_info:
+                models_info[model] = {
+                    'available': False,
+                    'ram_requirement_gb': ram_req,
+                    'selected': False
+                }
+        
+        return {
+            'current_model': self.model,
+            'preferred_model': self.preferred_model,
+            'total_ram_gb': get_total_ram_gb(),
+            'available_ram_gb': get_available_ram_gb(),
+            'models': models_info
+        }
     
     def generate(
         self,

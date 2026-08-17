@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse, FileResponse, PlainTextResponse, JSO
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
+from typing import Optional
 import uvicorn
 import logging
 import aiofiles
@@ -47,11 +48,21 @@ BASE_DIR = Path(__file__).parent.parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "frontend" / "templates"))
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "frontend" / "static")), name="static")
 
-# Initialize Ollama client
-ollama_client = OllamaClient()
+# Initialize Ollama client with auto model selection
+# auto_select_model=True enables automatic selection based on RAM
+ollama_client = OllamaClient(auto_select_model=True)
 
 # Initialize report generator
 report_generator = ReportGenerator()
+
+# Import cleanup utilities
+from backend.utils.cleanup import cleanup_uploads, cleanup_uploads_dry_run, get_upload_stats
+
+# Run cleanup at startup (clean old files)
+print("Running startup cleanup...")
+cleanup_result = cleanup_uploads()
+if cleanup_result['deleted_files'] > 0:
+    logger.info(f"Startup cleanup: deleted {cleanup_result['deleted_files']} files, freed {cleanup_result['space_freed_mb']} MB")
 
 
 # Helper function to convert AttachmentInfo to dict
@@ -315,7 +326,103 @@ async def ollama_health():
         "status": "healthy" if is_healthy else "unhealthy",
         "ollama_running": is_healthy,
         "available_models": models or [],
-        "current_model": settings.OLLAMA_MODEL
+        "current_model": ollama_client.model,
+        "preferred_model": settings.OLLAMA_MODEL
+    }
+
+
+@app.get("/api/models", tags=["ollama"])
+async def get_models_info():
+    """
+    Get information about available Ollama models and RAM requirements.
+    
+    Returns model selection information including:
+    - Current selected model
+    - Preferred model from settings
+    - Available RAM
+    - All known models with their RAM requirements and availability
+    """
+    return ollama_client.get_available_models_info()
+
+
+@app.post("/api/models/select", tags=["ollama"])
+async def select_model(model_name: str):
+    """
+    Manually select a model for analysis.
+    
+    Args:
+        model_name: Name of the model to select (e.g., mistral, deepseek)
+    
+    Returns:
+        Confirmation of model selection
+    """
+    old_model = ollama_client.model
+    ollama_client.set_model(model_name)
+    
+    return {
+        "status": "success",
+        "previous_model": old_model,
+        "new_model": ollama_client.model,
+        "message": f"Model changed to {model_name}"
+    }
+
+
+# ============================================================================
+# Cleanup Endpoints
+# ============================================================================
+
+@app.post("/api/cleanup", tags=["maintenance"])
+async def run_cleanup():
+    """
+    Run cleanup of old uploaded files.
+    
+    Deletes files older than CLEANUP_DAYS (default: 7 days) from the upload directory.
+    
+    Returns:
+        Cleanup results including number of files deleted and space freed
+    """
+    result = cleanup_uploads()
+    return {
+        "status": "success",
+        "files_deleted": result['deleted_files'],
+        "space_freed_mb": result['space_freed_mb'],
+        "files": result['deleted_list']
+    }
+
+
+@app.post("/api/cleanup/dry-run", tags=["maintenance"])
+async def run_cleanup_dry_run():
+    """
+    Perform a dry run of cleanup (show what would be deleted without deleting).
+    
+    Returns:
+        List of files that would be deleted and space that would be freed
+    """
+    result = cleanup_uploads_dry_run()
+    return {
+        "status": "success",
+        "dry_run": True,
+        "files_to_delete": result['total_files'],
+        "space_to_free_mb": result['space_freed_mb'],
+        "files": result['deleted_list']
+    }
+
+
+@app.get("/api/uploads/stats", tags=["maintenance"])
+async def get_uploads_stats():
+    """
+    Get statistics about uploaded files.
+    
+    Returns:
+        Statistics including total files, total size, oldest/newest file age
+    """
+    stats = get_upload_stats()
+    return {
+        "status": "success",
+        "total_files": stats['total_files'],
+        "total_size_mb": stats['total_size_mb'],
+        "oldest_file_days": stats['oldest_file_days'],
+        "newest_file_days": stats['newest_file_days']
     }
 
 
